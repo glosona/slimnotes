@@ -40,6 +40,7 @@ struct ContentView: View {
     private var editorOrPlaceholder: some View {
         if let binding = store.selectedNote {
             NoteEditorView(note: binding)
+                .id(store.selectedId)
         } else {
             EmptyNoteView()
         }

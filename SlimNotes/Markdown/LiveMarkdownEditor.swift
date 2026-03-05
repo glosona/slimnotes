@@ -390,9 +390,13 @@ struct LiveMarkdownEditor: NSViewRepresentable {
 
             parent.text = tv.string
 
+            // Skip styling while IME is composing (e.g. Korean input)
+            if tv.hasMarkedText() { return }
+
             if let storage = tv.textStorage {
                 let ns  = tv.string as NSString
-                let loc = min(tv.selectedRange().location, max(0, ns.length - 1))
+                guard ns.length > 0 else { return }
+                let loc = min(tv.selectedRange().location, ns.length - 1)
                 let pr  = ns.paragraphRange(for: NSRange(location: loc, length: 0))
                 let ln  = ns.substring(with: pr).trimmingCharacters(in: .newlines)
                 storage.beginEditing()

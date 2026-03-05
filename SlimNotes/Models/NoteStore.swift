@@ -20,15 +20,28 @@ class NoteStore: ObservableObject {
 
     var selectedNote: Binding<Note>? {
         guard let id = selectedId,
-              let idx = notes.firstIndex(where: { $0.id == id }) else { return nil }
+              notes.contains(where: { $0.id == id }) else { return nil }
         return Binding(
-            get: { self.notes[idx] },
-            set: {
-                self.notes[idx] = $0
-                self.notes[idx].updatedAt = Date()
-                self.save()
+            get: {
+                guard let i = self.notes.firstIndex(where: { $0.id == id }) else { return Note() }
+                return self.notes[i]
+            },
+            set: { newValue in
+                guard let i = self.notes.firstIndex(where: { $0.id == id }) else { return }
+                self.notes[i] = newValue
+                self.notes[i].updatedAt = Date()
+                self.scheduleSave()
             }
         )
+    }
+
+    private var saveTask: DispatchWorkItem?
+
+    private func scheduleSave() {
+        saveTask?.cancel()
+        let task = DispatchWorkItem { [weak self] in self?.save() }
+        saveTask = task
+        DispatchQueue.main.async(execute: task)
     }
 
     func addNote() {
